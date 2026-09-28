@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101714">
+    <title>TURMO Screen Bridge</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <main class="bridge">
+      <header class="masthead">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <div>
+            <p class="overline">BROWSER DISPLAY LINK</p>
+            <h1>TURMO <span>Screen Bridge</span></h1>
+          </div>
+        </div>
+        <div class="serial-state" id="serial-state" data-state="idle" role="status" aria-live="polite">
+          <span class="state-dot" aria-hidden="true"></span>
+          <span id="serial-state-label">DISPLAY DISCONNECTED</span>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <div class="controls">
+          <div class="control-heading">
+            <p class="overline">CONNECTION</p>
+            <h2>Display link</h2>
+          </div>
+          <button class="action-button connect-button" id="connect-button" type="button">
+            <span class="button-icon" aria-hidden="true">↔</span>
+            <span>Connect TURMO Display</span>
+          </button>
+          <button class="action-button share-button" id="share-button" type="button">
+            <span class="button-icon" aria-hidden="true">▣</span>
+            <span>Share / Extend Screen</span>
+          </button>
+          <button class="action-button test-button" id="test-pattern-button" type="button">
+            <span class="button-icon" aria-hidden="true">▦</span>
+            <span>Send Test Pattern</span>
+          </button>
+          <button class="action-button push-button" id="push-frame-button" type="button">
+            <span class="button-icon" aria-hidden="true">↑</span>
+            <span>Push Frame Now</span>
+          </button>
+
+          <div class="auto-sync-row">
+            <div class="auto-sync-copy">
+              <span class="mode-label">AUTO-SYNC SCREEN</span>
+              <span class="auto-sync-detail">Target <output id="target-fps-output">10</output> FPS</span>
+            </div>
+            <label class="switch-control" for="auto-sync-toggle">
+              <input id="auto-sync-toggle" type="checkbox" role="switch" aria-label="Auto-Sync Screen">
+              <span class="switch-track" aria-hidden="true"><span></span></span>
+            </label>
+          </div>
+          <label class="speed-field" for="target-fps-slider">
+            <span>Target FPS</span>
+            <input id="target-fps-slider" type="range" min="1" max="15" value="10">
+          </label>
+
+          <div class="control-grid">
+            <label class="field">
+              <span>Panel size</span>
+              <select id="resolution-select">
+                <option value="480x320">480 × 320 · Landscape</option>
+                <option value="320x480">320 × 480 · Portrait</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Serial baud rate</span>
+              <select id="baud-select">
+                <option value="auto" selected>Auto · highest acknowledged</option>
+                <option value="115200">115200</option>
+                <option value="460800">460800</option>
+                <option value="921600">921600</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Orientation</span>
+              <select id="orientation-select">
+                <option value="normal">Normal</option>
+                <option value="rotate-180">Rotate 180°</option>
+                <option value="flip-horizontal">Flip horizontal</option>
+                <option value="flip-vertical">Flip vertical</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Pixel format</span>
+              <select id="pixel-format-select">
+                <option value="bgra32">BGRA32 · 32-bit</option>
+                <option value="rgb565">RGB565 · 16-bit · experimental</option>
+              </select>
+            </label>
+            <label class="field" id="byte-order-field" hidden>
+              <span>RGB565 byte order</span>
+              <select id="byte-order-select">
+                <option value="little">Little-endian</option>
+                <option value="big">Big-endian</option>
+              </select>
+            </label>
+            <label class="field brightness-field">
+              <span>Brightness <output id="brightness-output">255</output></span>
+              <input id="brightness-slider" type="range" min="0" max="255" value="255">
+            </label>
+          </div>
+
+          <div class="mode-row">
+            <span class="mode-label">FRAME SOURCE</span>
+            <div class="mode-switch" role="group" aria-label="Frame source">
+              <button class="mode-button is-selected" id="dashboard-mode" type="button" aria-pressed="true">Dashboard</button>
+              <button class="mode-button" id="shared-mode" type="button" aria-pressed="false">Shared screen</button>
+            </div>
+          </div>
+
+          <div class="transfer-status" aria-live="polite">
+            <span class="transfer-led" id="transfer-led"></span>
+            <span id="transfer-status">Connect to begin. Dashboard preview is local.</span>
+          </div>
+
+          <details class="protocol-note">
+            <summary>About compatibility</summary>
+            <p>This sender implements the vendor application's USB2 serial framebuffer protocol. It requires a browser-visible USB CDC/COM port; it cannot drive the Windows-only indirect display interface.</p>
+          </details>
+        </div>
+
+        <section class="preview-area" aria-label="TURMO panel preview">
+          <div class="preview-topline">
+            <div>
+              <p class="overline">PANEL PREVIEW</p>
+              <h2 id="preview-resolution">480 × 320 <span>LANDSCAPE</span></h2>
+            </div>
+            <span class="preview-frequency" id="preview-rate">LOCAL PREVIEW</span>
+          </div>
+          <div class="screen-frame" id="screen-frame">
+            <canvas id="display-canvas" width="480" height="320" aria-label="Rendered panel content"></canvas>
+          </div>
+          <div class="preview-foot">
+            <span>LIVE FROM THIS BROWSER</span>
+            <span id="last-sent">NO FRAME SENT</span>
+          </div>
+        </section>
+      </section>
+
+      <footer class="page-foot">
+        <span>PC03501A · TM01088</span>
+        <span>Screen capture requires Chrome or Edge on HTTPS or localhost</span>
+      </footer>
+      <video id="capture-video" autoplay muted playsinline hidden></video>
+    </main>
+  </body>
+</html>
