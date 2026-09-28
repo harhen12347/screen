@@ -52,6 +52,31 @@ const pushFrameButton = document.querySelector("#push-frame-button");
 const autoSyncToggle = document.querySelector("#auto-sync-toggle");
 const targetFpsSlider = document.querySelector("#target-fps-slider");
 const targetFpsOutput = document.querySelector("#target-fps-output");
+const flagAccessButton = document.querySelector("#flag-access-button");
+const flagDialog = document.querySelector("#flag-dialog");
+const flagCloseButton = document.querySelector("#flag-close-button");
+const flagPasswordForm = document.querySelector("#flag-password-form");
+const flagPassword = document.querySelector("#flag-password");
+const flagPasswordError = document.querySelector("#flag-password-error");
+const flagPickerForm = document.querySelector("#flag-picker-form");
+const flagSelect = document.querySelector("#flag-select");
+
+const FLAG_DESIGNS = Object.freeze({
+  pride: { name: "Pride", colors: ["#e40303", "#ff8c00", "#ffed00", "#008026", "#004dff", "#750787"] },
+  progress: {
+    name: "Progress Pride",
+    colors: ["#e40303", "#ff8c00", "#ffed00", "#008026", "#004dff", "#750787"],
+    chevron: ["#ffffff", "#f5a9b8", "#5bcefa", "#613915", "#000000"]
+  },
+  trans: { name: "Transgender", colors: ["#5bcefa", "#f5a9b8", "#ffffff", "#f5a9b8", "#5bcefa"] },
+  bisexual: { name: "Bisexual", colors: ["#d60270", "#d60270", "#9b4f96", "#0038a8", "#0038a8"] },
+  lesbian: { name: "Lesbian", colors: ["#d52d00", "#ef7627", "#ff9a56", "#ffffff", "#d162a4", "#b55690", "#a30262"] },
+  pansexual: { name: "Pansexual", colors: ["#ff218c", "#ffd800", "#21b1ff"] },
+  nonbinary: { name: "Non-binary", colors: ["#fff430", "#ffffff", "#9c59d1", "#000000"] },
+  asexual: { name: "Asexual", colors: ["#000000", "#a3a3a3", "#ffffff", "#800080"] },
+  aromantic: { name: "Aromantic", colors: ["#3da542", "#a8d47a", "#ffffff", "#a9a9a9", "#000000"] },
+  genderfluid: { name: "Genderfluid", colors: ["#ff75a2", "#ffffff", "#be18d6", "#000000", "#333ebd"] }
+});
 
 let port = null;
 let writer = null;
@@ -74,6 +99,7 @@ let pendingManualPush = false;
 let autoSyncEnabled = false;
 let activeSendSource = "manual";
 let activeDeviceProfileKey = null;
+let activeFlag = null;
 const ackWaiters = new Map();
 
 function setStatus(message, state = "idle") {
@@ -450,6 +476,34 @@ function drawTestPattern(ctx, width, height) {
   }
 }
 
+function drawFlag(ctx, width, height, design) {
+  ctx.fillStyle = design.colors[0];
+  design.colors.forEach((color, index) => {
+    const top = Math.floor((height * index) / design.colors.length);
+    const bottom = Math.floor((height * (index + 1)) / design.colors.length);
+    ctx.fillStyle = color;
+    ctx.fillRect(0, top, width, bottom - top);
+  });
+  if (!design.chevron) return;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(width * 0.42, 0);
+  ctx.lineTo(width * 0.2, height / 2);
+  ctx.lineTo(width * 0.42, height);
+  ctx.lineTo(0, height);
+  ctx.closePath();
+  ctx.clip();
+  design.chevron.forEach((color, index) => {
+    const top = Math.floor((height * index) / design.chevron.length);
+    const bottom = Math.floor((height * (index + 1)) / design.chevron.length);
+    ctx.fillStyle = color;
+    ctx.fillRect(0, top, width * 0.42, bottom - top);
+  });
+  ctx.restore();
+}
+
 function drawOriented(ctx, source, width, height) {
   ctx.save();
   ctx.fillStyle = "#101714";
@@ -486,7 +540,11 @@ function drawOriented(ctx, source, width, height) {
 function renderPreview() {
   const width = frameCanvas.width;
   const height = frameCanvas.height;
-  if (testPatternActive) {
+  if (activeFlag) {
+    const flagContext = orientationSelect.value === "normal" ? frameContext : dashboardContext;
+    drawFlag(flagContext, width, height, FLAG_DESIGNS[activeFlag]);
+    if (orientationSelect.value !== "normal") drawOriented(frameContext, dashboardCanvas, width, height);
+  } else if (testPatternActive) {
     drawTestPattern(orientationSelect.value === "normal" ? frameContext : dashboardContext, width, height);
     if (orientationSelect.value !== "normal") drawOriented(frameContext, dashboardCanvas, width, height);
   } else if (captureStream && captureVideo.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
@@ -792,13 +850,20 @@ async function pushFrameNow() {
 }
 
 connectButton.addEventListener("click", connectDisplay);
-shareButton.addEventListener("click", () => captureStream ? stopSharing() : startSharing());
+shareButton.addEventListener("click", () => {
+  activeFlag = null;
+  if (captureStream) stopSharing();
+  else startSharing();
+});
 dashboardModeButton.addEventListener("click", () => {
+  activeFlag = null;
   testPatternActive = false;
   stopSharing();
   renderPreview();
 });
 sharedModeButton.addEventListener("click", () => {
+  activeFlag = null;
+  renderPreview();
   if (!captureStream) startSharing();
 });
 resolutionSelect.addEventListener("change", () => {
@@ -827,8 +892,45 @@ byteOrderSelect.addEventListener("change", () => {
   targetGeneration += 1;
   setStatus(`RGB565 ${byteOrderSelect.value}-endian selected · next frame will be uncompressed`, port ? "connected" : "idle");
 });
-testPatternButton.addEventListener("click", sendTestPattern);
+testPatternButton.addEventListener("click", () => {
+  activeFlag = null;
+  sendTestPattern();
+});
 pushFrameButton.addEventListener("click", pushFrameNow);
+flagAccessButton.addEventListener("click", () => {
+  flagPasswordForm.hidden = false;
+  flagPickerForm.hidden = true;
+  flagPasswordError.hidden = true;
+  flagPassword.value = "";
+  flagDialog.showModal();
+  flagPassword.focus();
+});
+flagCloseButton.addEventListener("click", () => flagDialog.close());
+flagPasswordForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (flagPassword.value !== "1234") {
+    flagPasswordError.hidden = false;
+    flagPassword.select();
+    return;
+  }
+  flagPasswordError.hidden = true;
+  flagPasswordForm.hidden = true;
+  flagPickerForm.hidden = false;
+  flagSelect.focus();
+});
+flagPickerForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  activeFlag = flagSelect.value;
+  testPatternActive = false;
+  if (captureStream) await stopSharing();
+  renderPreview();
+  flagDialog.close();
+  if (port) {
+    await pushFrameNow();
+  } else {
+    setStatus(`${FLAG_DESIGNS[activeFlag].name} flag preview updated · connect the display to send it`, "idle");
+  }
+});
 autoSyncToggle.addEventListener("change", () => {
   autoSyncEnabled = autoSyncToggle.checked;
   if (autoSyncEnabled) {

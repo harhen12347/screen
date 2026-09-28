@@ -755,6 +755,63 @@ body {
 .preview-foot { padding-top: 15px; }
 .page-foot { min-height: 16px; }
 
+.flag-access-button {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
+  min-height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #567665;
+  border-radius: 2px;
+  color: var(--bridge-text);
+  background: #18211d;
+  font: 700 10px var(--font-display);
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgb(0 0 0 / 30%);
+}
+
+.flag-access-button:hover { border-color: var(--bridge-aqua); }
+.flag-access-button:focus-visible,
+.flag-close-button:focus-visible,
+.flag-submit-button:focus-visible { outline: 2px solid var(--bridge-aqua); outline-offset: 3px; }
+.flag-access-mark { width: 14px; height: 14px; display: flex; flex-direction: column; overflow: hidden; }
+.flag-access-mark i { flex: 1; background: #e40303; }
+.flag-access-mark i:nth-child(2) { background: #ffed00; }
+.flag-access-mark i:nth-child(3) { background: #004dff; }
+
+.flag-dialog {
+  width: min(360px, calc(100% - 28px));
+  padding: 20px;
+  border: 1px solid var(--bridge-line);
+  border-radius: 2px;
+  color: var(--bridge-text);
+  background: var(--bridge-panel);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 55%);
+}
+
+.flag-dialog::backdrop { background: rgb(5 9 7 / 76%); }
+.flag-dialog-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+.flag-dialog-heading h2 { margin-top: 4px; font-size: 17px; }
+.flag-close-button { width: 30px; height: 30px; border: 1px solid var(--bridge-line); color: var(--bridge-muted); background: transparent; font: 20px/1 var(--font-body); cursor: pointer; }
+.flag-password-form,
+.flag-picker-form { display: flex; flex-direction: column; gap: 12px; }
+.flag-password-form[hidden],
+.flag-picker-form[hidden] { display: none; }
+.flag-dialog .field { gap: 7px; }
+.flag-dialog .field > span { color: var(--bridge-muted); font-size: 11px; }
+.flag-dialog input,
+.flag-dialog select { width: 100%; min-height: 40px; padding: 0 10px; border: 1px solid var(--bridge-line); border-radius: 1px; color: var(--bridge-text); background: #111915; font: 13px var(--font-body); }
+.flag-dialog input:focus,
+.flag-dialog select:focus { outline: 2px solid var(--bridge-aqua); outline-offset: 1px; }
+.flag-error { color: var(--bridge-alert); font-size: 11px; }
+.flag-error[hidden] { display: none; }
+.flag-submit-button { min-height: 40px; border: 1px solid #94b64b; color: #eff8df; background: #344626; font: 700 11px var(--font-display); cursor: pointer; }
+.flag-submit-button:hover { background: #405832; }
+
 @media (max-width: 860px) {
   .bridge { padding-inline: 16px; }
   .workspace { flex-direction: column; }

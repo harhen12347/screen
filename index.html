@@ -151,5 +151,44 @@
       </footer>
       <video id="capture-video" autoplay muted playsinline hidden></video>
     </main>
+    <button class="flag-access-button" id="flag-access-button" type="button" aria-label="Choose a pride flag" title="Choose a pride flag">
+      <span class="flag-access-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>Flags</span>
+    </button>
+    <dialog class="flag-dialog" id="flag-dialog" aria-labelledby="flag-dialog-title">
+      <div class="flag-dialog-heading">
+        <div>
+          <p class="overline">PANEL CONTENT</p>
+          <h2 id="flag-dialog-title">Show a flag</h2>
+        </div>
+        <button class="flag-close-button" id="flag-close-button" type="button" aria-label="Close">×</button>
+      </div>
+      <form class="flag-password-form" id="flag-password-form">
+        <label class="field" for="flag-password">
+          <span>Enter passcode</span>
+          <input id="flag-password" type="password" inputmode="numeric" autocomplete="off" required>
+        </label>
+        <p class="flag-error" id="flag-password-error" role="alert" hidden>That passcode is not correct.</p>
+        <button class="flag-submit-button" type="submit">Unlock flags</button>
+      </form>
+      <form class="flag-picker-form" id="flag-picker-form" hidden>
+        <label class="field" for="flag-select">
+          <span>Flag</span>
+          <select id="flag-select">
+            <option value="pride">Pride</option>
+            <option value="progress">Progress Pride</option>
+            <option value="trans">Transgender</option>
+            <option value="bisexual">Bisexual</option>
+            <option value="lesbian">Lesbian</option>
+            <option value="pansexual">Pansexual</option>
+            <option value="nonbinary">Non-binary</option>
+            <option value="asexual">Asexual</option>
+            <option value="aromantic">Aromantic</option>
+            <option value="genderfluid">Genderfluid</option>
+          </select>
+        </label>
+        <button class="flag-submit-button" type="submit">Show on screen</button>
+      </form>
+    </dialog>
   </body>
 </html>
